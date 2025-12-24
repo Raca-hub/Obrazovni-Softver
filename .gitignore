@@ -1,0 +1,8 @@
+# Godot-specific ignores
+.godot/
+.tmp/
+export_preset.cfg
+# Ako koristiš C#
+.mono/
+*.sln
+*.csproj
