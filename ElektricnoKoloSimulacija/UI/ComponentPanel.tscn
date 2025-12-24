@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://damdc5118gnbk"]
+
+[ext_resource type="Script" uid="uid://bf1b3ucxk2g8s" path="res://ElektricnoKoloSimulacija/UI/component_panel.gd" id="1_f5b30"]
+
+[node name="ComponentPanel" type="Panel"]
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 190.0
+offset_bottom = 410.0
+script = ExtResource("1_f5b30")

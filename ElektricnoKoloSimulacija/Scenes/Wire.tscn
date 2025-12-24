@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c6aadw1vg0gxp"]
+
+[ext_resource type="Script" uid="uid://bm611h25ovmts" path="res://ElektricnoKoloSimulacija/Program/Wire.gd" id="1_ec57f"]
+
+[node name="Wire" type="Line2D"]
+script = ExtResource("1_ec57f")
