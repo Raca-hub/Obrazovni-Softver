@@ -1,7 +1,7 @@
 extends Node2D
+# Glavni kontroler simulacije električnih kola - 2D RADNA POVRŠINA
 
-# Glavni kontroler simulacije električnih kola
-var current_view_mode=0
+var current_view_mode = 0  # 0 = Schematic, 1 = 2D textures
 var wire_start = null
 var temp_wire = null
 var components = []
@@ -15,17 +15,18 @@ var is_placing_component = false
 var grid_size = 20
 var show_grid = true
 
-# Preload scena
+# Preload scene
 var ComponentScene = preload("res://ElektricnoKoloSimulacija/Scenes/Component.tscn")
 var WireScene = preload("res://ElektricnoKoloSimulacija/Scenes/Wire.tscn")
-@onready var component_panel = $CanvasLayer/ComponentPanel
-@onready var view_mode_panel = $CanvasLayer/ViewModePanel
-@onready var world_3d = $SubViewportContainer/SubViewport/World3D
-@onready var viewport_container = $SubViewportContainer
 
+var component_panel
+var info_label
 
 func _ready():
-	print("=== MAIN.GD UČITAN ===")
+	print("=== MAIN.GD (2D Radna površina) UČITANA ===")
+	
+	# Pronađi component panel
+	component_panel = get_node_or_null("CanvasLayer/ComponentPanel")
 	
 	# Povezi signal iz component panela
 	if component_panel:
@@ -34,27 +35,29 @@ func _ready():
 	else:
 		print("✗ ComponentPanel nije pronađen!")
 	
-	# Povezi signal iz view mode panela
-	if view_mode_panel:
-		view_mode_panel.view_mode_changed.connect(_on_view_mode_changed)
-		print("✓ ViewModePanel povezan")
-	else:
-		print("✗ ViewModePanel nije pronađen!")
-	
-	# Proveri 3D komponente
-	if viewport_container:
-		print("✓ SubViewportContainer pronađen")
-		viewport_container.visible = false  # Sakrij na početku
-	else:
-		print("✗ SubViewportContainer nije pronađen!")
-	
-	if world_3d:
-		print("✓ World3D pronađen")
-	else:
-		print("✗ World3D nije pronađen!")
+	# Setup info label
+	info_label = get_node_or_null("CanvasLayer/InfoLabel")
+	if not info_label:
+		create_info_label()
 	
 	# Primoraj redraw da se vidi grid
 	queue_redraw()
+
+func create_info_label():
+	# Kreiraj info label ako ne postoji
+	var canvas = get_node_or_null("CanvasLayer")
+	if not canvas:
+		canvas = CanvasLayer.new()
+		canvas.name = "CanvasLayer"
+		add_child(canvas)
+	
+	info_label = Label.new()
+	info_label.name = "InfoLabel"
+	info_label.text = "Shift+Klik za povezivanje žicama"
+	info_label.position = Vector2(10, 10)
+	info_label.add_theme_font_size_override("font_size", 14)
+	info_label.add_theme_color_override("font_color", Color(1, 1, 0.5))
+	canvas.add_child(info_label)
 
 func _draw():
 	# Nacrtaj grid pozadinu
@@ -72,10 +75,19 @@ func _process(delta):
 	# Redraw za ghost preview
 	if is_placing_component:
 		queue_redraw()
+	
+	# Ažuriraj info label
+	if info_label:
+		if wire_start:
+			info_label.text = "Kliknite na drugu komponentu da završite žicu (ESC za odustajanje)"
+		elif is_placing_component:
+			info_label.text = "Kliknite gde želite da postavite komponentu (ESC za odustajanje)"
+		else:
+			info_label.text = "Shift+Klik = Povežite žicama | Drag = Pomeri | Desni klik = Rotiraj"
 
 func draw_grid():
 	var viewport_size = get_viewport_rect().size
-	var grid_color = Color(0.8, 0.8, 0.8, 1.0)  # Svetlija siva
+	var grid_color = Color(0.2, 0.2, 0.25, 1.0)
 	
 	# Vertikalne linije
 	for x in range(0, int(viewport_size.x), grid_size):
@@ -86,78 +98,35 @@ func draw_grid():
 		draw_line(Vector2(0, y), Vector2(viewport_size.x, y), grid_color, 1.0)
 
 func snap_to_grid(pos: Vector2) -> Vector2:
-	# Zaokruži poziciju na najbliži grid
 	return Vector2(
 		round(pos.x / grid_size) * grid_size,
 		round(pos.y / grid_size) * grid_size
 	)
 
 func _on_component_selected(type, value):
-	# Kada korisnik klikne dugme za komponentu
 	selected_component_type = type
 	selected_component_value = value
 	is_placing_component = true
-	print("Selektovana komponenta: ", type)
+	print("Selektovana komponenta: ", type, " vrednost: ", value)
 
-func _on_view_mode_changed(mode):
-	# Promeni view mode za sve komponente i žice
-	current_view_mode = mode
-	print("")
-	print("╔════════════════════════════════════════╗")
-	print("║ VIEW MODE PROMENJEN NA: ", mode, "         ║")
-	print("╚════════════════════════════════════════╝")
-	print("Broj komponenti: ", components.size())
-	print("Broj žica: ", wires.size())
-	
-	# Prikaži/sakrij 3D viewport
-	if viewport_container:
-		print(">>> Postavljam viewport_container.visible = ", (mode == 2))
-		viewport_container.visible = (mode == 2)
-		print(">>> viewport_container.visible je sada: ", viewport_container.visible)
-	else:
-		print("!!! GREŠKA: viewport_container je NULL!")
-	
-	# Ažuriraj komponente
-	for i in range(components.size()):
-		var comp = components[i]
-		print("  Ažuriram komponentu ", i, " (tip: ", comp.component_type, ")")
-		comp.set_view_mode(mode)
-		comp.queue_redraw()
-	
-	# Ažuriraj žice
-	for i in range(wires.size()):
-		var wire = wires[i]
-		print("  Ažuriram žicu ", i)
-		wire.set_view_mode(mode)
-	
-	print("✓ Ažurirano ", components.size(), " komponenti i ", wires.size(), " žica")
-	print("")
 func _input(event):
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
-				# Da li držimo Shift za povezivanje žicama?
+				# Shift+Klik za povezivanje žicama
 				if event.shift_pressed:
 					print("Shift+Klik detektovan!")
-					# Mod za povezivanje žicama
 					var clicked_component = get_component_at_position(event.position)
 					if clicked_component:
 						print("Kliknuta komponenta za žicu")
 						if wire_start:
-							# Završi žicu
 							finish_wire(event.position)
 						else:
-							# Započni žicu
 							start_wire(clicked_component, event.position)
-				# Da li postavljamo komponentu?
+				# Postavljanje komponente
 				elif is_placing_component:
 					add_component(selected_component_type, event.position)
 					is_placing_component = false
-			else:
-				# Puštamo klik - završavamo žicu samo ako je bila započeta
-				if wire_start and not event.shift_pressed:
-					# Ne završavaj automatski, čekaj drugi Shift+Klik
-					pass
 	
 	elif event is InputEventMouseMotion:
 		# Ažuriraj privremenu žicu
@@ -202,7 +171,6 @@ func finish_wire(pos):
 	
 	print("Završavam žicu...")
 	
-	# Proveri da li smo kliknuli na drugu komponentu
 	var end_component = get_component_at_position(pos)
 	if end_component and end_component != wire_start.component:
 		var end_terminal = end_component.get_nearest_terminal(pos)
@@ -218,20 +186,17 @@ func finish_wire(pos):
 		# Kreiraj finalnu žicu
 		var wire = WireScene.instantiate()
 		
-		# Postavi reference na terminale i komponente
 		wire.start_terminal = wire_start.terminal
 		wire.end_terminal = end_terminal
 		wire.start_component = wire_start.component
 		wire.end_component = end_component
 		
-		# Nađi indekse terminala
 		wire.start_terminal_index = wire_start.component.terminals.find(wire_start.terminal)
 		wire.end_terminal_index = end_component.terminals.find(end_terminal)
 		
 		print("Start terminal index: ", wire.start_terminal_index)
 		print("End terminal index: ", wire.end_terminal_index)
 		
-		# Postavi vizuelne tačke
 		var start_base = Vector2(-40, 0) if wire.start_terminal_index == 0 else Vector2(40, 0)
 		var end_base = Vector2(-40, 0) if wire.end_terminal_index == 0 else Vector2(40, 0)
 		
@@ -248,21 +213,18 @@ func finish_wire(pos):
 		add_child(wire)
 		wires.append(wire)
 		
-		# Poveži komponente u električnom smislu
 		wire_start.component.connect_to(end_component, wire)
 		
 		print("Žica uspešno kreirana!")
 	else:
 		print("Nije kliknuta validna komponenta za završetak")
 	
-	# Očisti privremenu žicu
 	if temp_wire:
 		temp_wire.queue_free()
 		temp_wire = null
 	wire_start = null
 
 func get_component_at_position(pos):
-	# Pronađi komponentu na datoj poziciji
 	for comp in components:
 		var rect = Rect2(comp.position - Vector2(50, 30), Vector2(100, 60))
 		if rect.has_point(pos):
@@ -270,44 +232,31 @@ func get_component_at_position(pos):
 	return null
 
 func add_component(type, position):
-	# Dodaj novu komponentu
 	var component = ComponentScene.instantiate()
 	component.init(type, selected_component_value)
 	component.position = snap_to_grid(position)
 	component.draggable = true
-	component.set_view_mode(current_view_mode)  # Postavi trenutni view mode
+	component.set_view_mode(current_view_mode)
 	add_child(component)
 	components.append(component)
 	print("Dodata komponenta na poziciju: ", component.position)
 
 func simulate():
-	# Glavna simulacija - reši Kirchhoffove zakone
 	print("=== POKREĆEM SIMULACIJU ===")
 	print("Broj komponenti: ", components.size())
 	print("Broj žica: ", wires.size())
 	
-	# Debug info o komponentama
-	for i in range(components.size()):
-		var comp = components[i]
-		print("Komponenta ", i, ": tip=", comp.component_type, " vrednost=", comp.value)
-	
-	# Debug info o žicama
-	for i in range(wires.size()):
-		var wire = wires[i]
-		print("Žica ", i, ": start_comp=", wire.start_component != null, " end_comp=", wire.end_component != null)
-	
 	if components.size() == 0:
-		print("GREŠKA: Nema komponenti!")
+		show_error("Nema komponenti!")
 		return
 	
 	if wires.size() == 0:
-		print("GREŠKA: Nema žica!")
+		show_error("Nema žica! Povežite komponente.")
 		return
 	
 	CircuitSolver.solve_circuit(components, wires)
 	update_visuals()
 	
-	# Debug struje nakon simulacije
 	print("=== REZULTATI ===")
 	for i in range(components.size()):
 		var comp = components[i]
@@ -316,7 +265,6 @@ func simulate():
 	print("Simulacija završena!")
 
 func reset_circuit():
-	# Obriši sve komponente i žice
 	for comp in components:
 		comp.queue_free()
 	for wire in wires:
@@ -327,9 +275,21 @@ func reset_circuit():
 	print("Kolo resetovano")
 
 func update_visuals():
-	# Ažuriraj vizuelni prikaz (animacija struje, boja žica, itd.)
 	for wire in wires:
 		wire.update_current_animation()
 	
 	for comp in components:
 		comp.update_visual_state()
+
+func show_error(message: String):
+	print("GREŠKA: ", message)
+	# Prikaži vizuelnu notifikaciju
+	if info_label:
+		var original_text = info_label.text
+		info_label.text = "❌ GREŠKA: " + message
+		info_label.add_theme_color_override("font_color", Color.RED)
+		
+		await get_tree().create_timer(3.0).timeout
+		
+		info_label.text = original_text
+		info_label.add_theme_color_override("font_color", Color(1, 1, 0.5))

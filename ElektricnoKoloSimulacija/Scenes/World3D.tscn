@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://cpbm73b3ff0t0"]
+
+[ext_resource type="Script" uid="uid://7cscu8bwh6bt" path="res://ElektricnoKoloSimulacija/Scenes/World3D.gd" id="1_qj0xs"]
+[ext_resource type="Script" uid="uid://c2u5okdfn6leg" path="res://ElektricnoKoloSimulacija/Scripts/camera_3d_controller.gd" id="2_uknev"]
+
+[node name="World3d" type="Node3D"]
+script = ExtResource("1_qj0xs")
+
+[node name="CameraController" type="Node3D" parent="."]
+script = ExtResource("2_uknev")
+
+[node name="Camera3D" type="Camera3D" parent="CameraController"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]

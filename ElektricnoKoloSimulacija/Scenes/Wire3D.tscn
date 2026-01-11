@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bpw3fiss21cmm"]
 
-[ext_resource type="Script" uid="uid://ds5lg75qbk3ps" path="res://ElektricnoKoloSimulacija/Scenes/Wire3DGenerator.gd" id="1_1ugw3"]
+[ext_resource type="Script" uid="uid://ds5lg75qbk3ps" path="res://ElektricnoKoloSimulacija/Scripts/Wire3DGenerator.gd" id="1_1ugw3"]
 
 [node name="Wire3d" type="Node3D"]
 script = ExtResource("1_1ugw3")

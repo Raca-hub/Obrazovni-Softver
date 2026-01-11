@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://d0w3web71v4tx"]
 
-[ext_resource type="Script" uid="uid://b31aosulgcejo" path="res://ElektricnoKoloSimulacija/Program/Component.gd" id="1_vwp2j"]
+[ext_resource type="Script" uid="uid://b31aosulgcejo" path="res://ElektricnoKoloSimulacija/Scripts/Component.gd" id="1_vwp2j"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vwp2j"]
 size = Vector2(100, 60)

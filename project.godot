@@ -11,13 +11,14 @@ config_version=5
 [application]
 
 config/name="Projekat Obrazovani"
-run/main_scene="uid://drul23dt1xxyn"
+run/main_scene="uid://tqdnyhna5eun"
 config/features=PackedStringArray("4.5", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
 
-Circuitsolver="*res://ElektricnoKoloSimulacija/Program/CircuitSolver.gd"
+Circuitsolver="*res://ElektricnoKoloSimulacija/Scripts/CircuitSolver.gd"
+TaskSystems="*res://ElektricnoKoloSimulacija/Scripts/TaskSystem.gd"
 
 [display]
 
